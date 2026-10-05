@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Desenho Assinado</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <main>
@@ -17,18 +18,18 @@
       <label for="numero">Número</label>
       <input id="numero" name="numero" type="number" min="1" max="100" step="1" required placeholder="42">
 
-
-
-      <button type="submit">Desenhar</button>
+      <div id="g_id_onload"
+           data-client_id="SEU_CLIENT_ID_AQUI"
+           data-callback="handleCredentialResponse"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin" data-type="standard"></div>
     </form>
 
     <p id="mensagem" role="alert"></p>
-
     <figure id="desenho" aria-live="polite"></figure>
-
     <button id="baixar" type="button" hidden>Baixar SVG</button>
   </main>
-
   <script type="module" src="script.js"></script>
 </body>
 </html>
