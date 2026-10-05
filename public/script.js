@@ -1,46 +1,64 @@
-// script.js
-// Versao inicial: todo o trabalho acontece no navegador.
-// A tarefa consiste em levar gerarDesenho para o servidor (Pages Functions)
-// e fazer esta pagina apenas enviar o numero e exibir a resposta.
+// Esta é a função que declarámos no HTML (data-callback). O Google chama-a automaticamente após o login.
+window.handleCredentialResponse = async (response) => {
+  const token = response.credential;
+  const numeroInput = document.getElementById('numero').value;
+  const mensagemEl = document.getElementById('mensagem');
+  const desenhoEl = document.getElementById('desenho');
+  const baixarBtn = document.getElementById('baixar');
 
-import { gerarDesenho, numeroValido } from "./desenho.js";
+  // Limpa a tela para o novo processamento
+  mensagemEl.textContent = 'A processar o seu desenho...';
+  desenhoEl.innerHTML = '';
+  baixarBtn.hidden = true;
 
-const formulario = document.getElementById("formulario");
-const campoNumero = document.getElementById("numero");
-const campoEmail = document.getElementById("email");
-const area = document.getElementById("desenho");
-const mensagem = document.getElementById("mensagem");
-const botaoBaixar = document.getElementById("baixar");
-
-let svgAtual = "";
-
-formulario.addEventListener("submit", (evento) => {
-  evento.preventDefault();
-  mensagem.textContent = "";
-
-  const numero = Number(campoNumero.value);
-  const email = campoEmail.value.trim();
-
-  if (!numeroValido(numero)) {
-    mensagem.textContent = "Digite um inteiro entre 1 e 100.";
-    return;
-  }
-  if (email === "") {
-    mensagem.textContent = "Informe um e-mail.";
+  // Validação básica do lado do cliente
+  const numero = parseInt(numeroInput, 10);
+  if (isNaN(numero) || numero < 1 || numero > 100) {
+    mensagemEl.textContent = 'Por favor, insira um número válido entre 1 e 100.';
     return;
   }
 
-  svgAtual = gerarDesenho(numero, email);
-  area.innerHTML = svgAtual;
-  botaoBaixar.hidden = false;
-});
+  try {
+    // Comunicação com a nossa API no Cloudflare
+    const res = await fetch('/api/desenho', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ numero: numero })
+    });
 
-botaoBaixar.addEventListener("click", () => {
-  const arquivo = new Blob([svgAtual], { type: "image/svg+xml" });
-  const url = URL.createObjectURL(arquivo);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "exemplo.svg";
-  link.click();
-  URL.revokeObjectURL(url);
+    // Tratamento rigoroso das respostas (exigência da Tarefa 8)
+    if (res.status === 200) {
+      const svgText = await res.text();
+      desenhoEl.innerHTML = svgText;
+      mensagemEl.textContent = 'Desenho gerado com sucesso e assinado com o seu e-mail!';
+      
+      // Configura o botão para facilitar a recolha da evidência (Tarefa 9)
+      const blob = new Blob([svgText], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      baixarBtn.onclick = () => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'exemplo.svg';
+        a.click();
+      };
+      baixarBtn.hidden = false;
+
+    } else if (res.status === 400 || res.status === 401) {
+      const erroTexto = await res.text();
+      mensagemEl.textContent = `Erro ${res.status}: ${erroTexto}`;
+    } else {
+      mensagemEl.textContent = `Erro inesperado: ${res.status}`;
+    }
+  } catch (error) {
+    mensagemEl.textContent = 'Erro de rede ou servidor indisponível.';
+  }
+};
+
+// Previne o envio padrão do formulário se o utilizador pressionar "Enter"
+document.getElementById('formulario').addEventListener('submit', (e) => {
+  e.preventDefault();
+  document.getElementById('mensagem').textContent = 'Por favor, clique no botão do Google para autenticar e gerar o desenho.';
 });
