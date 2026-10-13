@@ -1,0 +1,7 @@
+name = "2bim-avalia1"
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "banco-avaliativo"
+database_id = "11111111-2222-3333-4444-555555555555"
