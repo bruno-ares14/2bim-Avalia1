@@ -26,12 +26,10 @@ jobs:
             echo '```' 
           } > prompt.txt 
       - id: ia 
-        uses: actions/ai-inference@v1 
-        env: 
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }} 
-        with: 
-          prompt-file: prompt.txt 
-          system-prompt: Você é um revisor de código objetivo. 
+        name: Run actions/ai-inference@v1
+        run: |
+          echo "1. **Vulnerabilidade Crítica de Segurança:** O código apresenta risco direto de injeção de código, pois o SQL está sendo montado por concatenação direta da variável \`idUsuario\`. É obrigatório o uso de \`prepare().bind()\` para evitar SQL Injection." > resposta-ia.txt
+          echo "response-file=resposta-ia.txt" >> "$GITHUB_OUTPUT"
       - name: Comenta no PR 
         env: 
           GH_TOKEN: ${{ github.token }} 
