@@ -4,4 +4,4 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "banco-avaliativo"
-database_id = "11111111-2222-3333-4444-555555555555"
+database_id = "1f59fa24-a5c9-4961-8c52-bac76772349d"
